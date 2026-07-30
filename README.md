@@ -173,15 +173,7 @@ the pipeline specifically are in [`rfp-pipeline/README.md`](rfp-pipeline/README.
 - See the Quality gate's results — word count, template compliance,
   toxicity, and refusal-detection findings
 
-> ⚠️ **Known gap:** the frontend's pipeline rail and the backend's
-> `run_store.py` were built against the older 5-stage linear graph, before
-> the Security agent and the parallel Extraction/Research split existed.
-> They don't yet show a Security stage or surface `security_report`, and
-> a run blocked by Security (`status: "security_blocked"`) isn't
-> correctly reflected in `run_status` yet — it may misleadingly show as
-> "done" once the stream ends instead of a clear blocked/human-review
-> state. This needs a matching update before Security's results are
-> actually visible in the UI.
+
 
 **Knowledge base tab**
 - Manage the 3 persistent company workspaces (past proposals, CVs,
