@@ -41,6 +41,15 @@ This repo has 3 parts, each in its own folder:
 - **AnythingLLM** is the actual document store + vector DB + LLM chat
   layer underneath everything.
 
+## Pipeline flow
+
+```
+verifier → (blocked?) → END
+        └→ dispatch ──┬→ extraction ─┐
+                       └→ research   ─┴→ generation → security → (blocked?) → END (human alert)
+                                                                └→ quality → (retry?) → generation
+                                                                          └→ END (done or failed)
+```
 
 - **Extraction and Research run in parallel** — neither depends on the
   other, and both feed into Generation. `dispatch` is internal plumbing
@@ -187,11 +196,21 @@ values:
 | Variable | What it's for |
 |---|---|
 | `ANYTHINGLLM_BASE_URL` | Where the pipeline reaches the AnythingLLM server (default `http://localhost:3001/api`) |
-| `OPENAI_API_KEY` / `OPENAI_API_BASE` | GPT Researcher's LLM connection — point `OPENAI_API_BASE` at a local Ollama endpoint to use local models instead of real OpenAI |
-| `OLLAMA_BASE_URL` | Local Ollama server, if using local models |
-| `FAST_LLM` / `SMART_LLM` / `STRATEGIC_LLM` | Which model GPT Researcher uses for each internal role |
-| `EMBEDDING` | Embedding model GPT Researcher uses for its own retrieval (separate from AnythingLLM's embeddings) |
+| `GROQ_API_KEY` | API key for Groq — GPT Researcher's LLM connection in this setup |
+| `FAST_LLM` / `SMART_LLM` / `STRATEGIC_LLM` | Which model GPT Researcher uses for each internal role. With Groq, these are prefixed model strings, e.g. `groq:llama-3.3-70b-versatile` |
+| `EMBEDDING` | Embedding model GPT Researcher uses for its own retrieval (separate from AnythingLLM's embeddings). **Groq is not a supported embedding provider** — point this at something else (e.g. `openai:text-embedding-3-small`, or `ollama:nomic-embed-text` if running a local embedder) |
 | `RETRIEVER` | Search backend GPT Researcher uses (e.g. `duckduckgo` for a free option, or a Tavily API key for better results) |
+
+Example `.env` values for a Groq-based setup:
+```
+GROQ_API_KEY=your_groq_key_here
+FAST_LLM=groq:llama-3.1-8b-instant
+SMART_LLM=groq:llama-3.3-70b-versatile
+STRATEGIC_LLM=groq:llama-3.3-70b-versatile
+EMBEDDING=openai:text-embedding-3-small
+RETRIEVER=duckduckgo
+```
+(Double-check current Groq model names at [console.groq.com](https://console.groq.com/docs/models) — they change over time as models get deprecated/added.)
 
 ## Screenshots
 
