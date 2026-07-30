@@ -1,3 +1,5 @@
+#Demo
+
 https://github.com/user-attachments/assets/7ac8eb5a-341e-466c-b6b9-6a536da5155c
 
 # Tender Desk — RFP Pipeline
@@ -233,10 +235,4 @@ RETRIEVER=duckduckgo
   guarantee.
 - CORS on the FastAPI backend is wide open for local dev convenience —
   tighten this before exposing anything beyond localhost.
-
-
-  #Demo
-  https://github.com/user-attachments/assets/7ac8eb5a-341e-466c-b6b9-6a536da5155c
-
-
 
