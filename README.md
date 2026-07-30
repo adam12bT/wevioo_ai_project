@@ -1,5 +1,4 @@
 
-https://github.com/user-attachments/assets/7ac8eb5a-341e-466c-b6b9-6a536da5155c
 # Tender Desk — RFP Pipeline
 
 An end-to-end system that takes a tender/RFP document and turns it into a
@@ -236,7 +235,7 @@ RETRIEVER=duckduckgo
 
 
   #Demo
-  
+  https://github.com/user-attachments/assets/7ac8eb5a-341e-466c-b6b9-6a536da5155c
 
-Uploading demo.mp4…
+
 
