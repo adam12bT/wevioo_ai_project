@@ -1,0 +1,109 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* --- color: "case file" palette --------------------------------------
+     A pale ledger-paper background (cool sage-grey, not the cliché warm
+     cream) with near-black ink text. The single accent is a rubber-stamp
+     ink-blue reserved for actions/links; status is told with stamp colors
+     used only inside the stamp/badge/chip components, never as page chrome.
+  ------------------------------------------------------------------------ */
+  --paper: #f3f5f1;
+  --paper-raised: #ffffff;
+  --paper-sunken: #eaede8;
+
+  --ink-900: #14181b;
+  --ink-700: #3c4a45;
+  --ink-400: #7c8b85;
+  --line: #dce2dc;
+  --line-strong: #c3ccc3;
+
+  --stamp-blue: #24466b;
+  --stamp-blue-soft: #e9eff5;
+  --stamp-green: #3f6b4f;
+  --stamp-green-soft: #e7f0e9;
+  --stamp-amber: #a9762c;
+  --stamp-amber-soft: #f5eee0;
+  --stamp-red: #a23b34;
+  --stamp-red-soft: #f5e8e6;
+  --stamp-slate: #6b7671;
+  --stamp-slate-soft: #eaece9;
+
+  /* --- type -------------------------------------------------------------
+     Fraunces carries personality on titles/eyebrows. IBM Plex Sans is the
+     workmanlike form-filling face for body copy. IBM Plex Mono renders
+     anything that reads like a reference code, a filing number, a stamp.
+  ------------------------------------------------------------------------ */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-ui: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* --- layout ------------------------------------------------------------*/
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --doc-width: 760px;
+  --shadow-flat: 0 1px 0 rgba(20, 24, 27, 0.05);
+  --shadow-raised: 0 2px 10px -4px rgba(20, 24, 27, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink-900);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--stamp-blue);
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--stamp-blue);
+  color: var(--paper-raised);
+}
+
+:focus-visible {
+  outline: 2px solid var(--stamp-blue);
+  outline-offset: 2px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
