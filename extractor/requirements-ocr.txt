@@ -1,0 +1,8 @@
+# Optional, heavier OCR engine. Install with:
+#   pip install -r requirements.txt -r requirements-ocr.txt
+# and set OCR_ENGINE=surya in your environment to use it.
+#
+# Surya pulls in a full PyTorch stack, so it's kept out of the default
+# requirements to keep the base image small.
+surya-ocr==0.9.2
+torch==2.5.1

@@ -1,0 +1,74 @@
+name: Deploy to Hugging Face Space
+
+# Only deploys on push to main, and only after CI has passed on that same
+# commit (see `needs:` / the check-run gate below). You can also trigger it
+# by hand from the Actions tab.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: hf-space-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Hugging Face Docker Spaces require `Dockerfile` and `README.md`
+      # (with SDK frontmatter) at the REPO ROOT. In this repo they live at
+      # docker/Dockerfile.huggingface and README-huggingface.md instead, so
+      # we assemble a throwaway copy of the tree with those swapped in,
+      # rather than disturbing the real root files everyone else uses.
+      - name: Assemble Space-ready tree
+        run: |
+          rm -rf /tmp/space-deploy
+          mkdir -p /tmp/space-deploy
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='server/storage/anythingllm.db' \
+            --exclude='server/storage/**/*.db' \
+            --exclude='server/storage/vector-cache' \
+            --exclude='server/storage/documents' \
+            --exclude='server/storage/lancedb' \
+            --exclude='node_modules' \
+            ./ /tmp/space-deploy/
+          cp docker/Dockerfile.huggingface /tmp/space-deploy/Dockerfile
+          cp README-huggingface.md /tmp/space-deploy/README.md
+          # Chroma's local scratch dir doesn't need to ship with the image.
+          rm -rf /tmp/space-deploy/docker/chroma_data
+          mkdir -p /tmp/space-deploy/docker/chroma_data
+          touch /tmp/space-deploy/docker/chroma_data/.gitkeep
+          # Same idea for anythingllm's own storage dir — the app creates
+          # these fresh at container start, so ship an empty placeholder
+          # instead of local dev data/binaries.
+          mkdir -p /tmp/space-deploy/server/storage
+          touch /tmp/space-deploy/server/storage/.gitkeep
+
+      - name: Push to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }} # e.g. "your-username/anything-llm-lightweight"
+        run: |
+          if [ -z "$HF_TOKEN" ] || [ -z "$HF_SPACE" ]; then
+            echo "::error::Missing HF_TOKEN secret or HF_SPACE repository variable. See the setup steps in .github/workflows/deploy.yml."
+            exit 1
+          fi
+
+          cd /tmp/space-deploy
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -q -b main
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA::7} from GitHub Actions" --allow-empty
+          git remote add space "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}"
+          # Force-push: the Space repo is a deploy target, not a place we
+          # collaborate in directly, so its history doesn't need preserving.
+          git push --force space main

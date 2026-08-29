@@ -1,0 +1,69 @@
+# Dockerfile for deploying this fork to a Hugging Face Space (Docker SDK).
+# Differences from docker/Dockerfile:
+#   - Bundles a Chroma server (via pip) in the SAME container, since free HF
+#     Spaces only give you one container — there's no separate chromadb service
+#     like in docker-compose.yml.
+#   - Runs as UID 1000, world-writable app dir, since HF Spaces may run the
+#     container as an arbitrary/non-root user regardless of the Dockerfile USER.
+#   - Listens on the port HF's proxy expects (set via SERVER_PORT below to
+#     match whatever you put in the Space's README.md `app_port:` field).
+FROM node:20-bookworm-slim
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+        build-essential python3 python3-pip git curl ca-certificates \
+        libcairo2 libcairo2-dev libpango-1.0-0 libpangocairo-1.0-0 \
+        libjpeg62-turbo libgif7 librsvg2-2 \
+        netcat-openbsd && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Chroma vector DB server (Python) — this fork only kept the Chroma vector DB
+# driver, and it needs an actual Chroma server to talk to over HTTP.
+RUN pip install --no-cache-dir --break-system-packages chromadb==0.5.23
+
+# HF Spaces may run the container as an arbitrary UID, not necessarily the
+# "anythingllm" user below — make the whole app dir world-writable so it
+# works regardless of which UID actually runs it.
+RUN mkdir -p /app/server /app/collector /data/chroma && \
+    chmod -R 777 /app /data
+
+COPY ./docker/docker-entrypoint.huggingface.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+WORKDIR /app
+
+# --- Server ---
+COPY ./server /app/server/
+WORKDIR /app/server
+RUN npm install --legacy-peer-deps && npm cache clean --force
+
+# --- Collector ---
+WORKDIR /app
+COPY ./collector/ ./collector/
+WORKDIR /app/collector
+# Skip Puppeteer's Chromium download — not needed for uploaded-document workflows.
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+RUN npm install --legacy-peer-deps && npm cache clean --force
+
+RUN chmod -R 777 /app
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV STORAGE_DIR="/app/server/storage"
+# HF Spaces proxies whatever port you declare in the Space's README.md
+# `app_port:` field to this container. 7860 is HF's own default; change both
+# this and the README frontmatter together if you use a different port.
+ENV SERVER_PORT=7860
+ENV CHROMA_ENDPOINT="http://localhost:8000"
+
+# Hardcoded to guarantee Qdrant is selected regardless of whether the HF
+# Space's runtime secret injection picks this up correctly. QDRANT_ENDPOINT
+# and QDRANT_API_KEY are NOT hardcoded here on purpose — those still come
+# from HF Space secrets, since baking the API key into this file would leak
+# it into git history / the public Space's file browser.
+ENV VECTOR_DB=qdrant
+
+EXPOSE 7860
+
+ENTRYPOINT ["/bin/bash", "/usr/local/bin/docker-entrypoint.sh"]

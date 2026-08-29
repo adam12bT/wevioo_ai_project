@@ -1,0 +1,47 @@
+version: "3.9"
+
+# Runs the extraction service standalone and points it at an AnythingLLM
+# instance. By default ANYTHINGLLM_URL assumes AnythingLLM is already
+# running elsewhere (e.g. your modified fork, started separately). If you'd
+# rather run both from this file, uncomment the `anythingllm` service below
+# and switch ANYTHINGLLM_URL to `http://anythingllm:3001`.
+
+services:
+  extractor:
+    build: .
+    image: anythingllm-extractor:latest
+    ports:
+      - "8007:8000"
+    environment:
+      - ANYTHINGLLM_URL=${ANYTHINGLLM_URL:-https://adambouacida7-ai-cv.hf.space}
+      - ANYTHINGLLM_API_KEY=${ANYTHINGLLM_API_KEY:-}
+      - OCR_LANGUAGE=${OCR_LANGUAGE:-eng+fra}
+      - OCR_ENGINE=${OCR_ENGINE:-tesseract}
+      - MIN_NATIVE_TEXT_CHARS=${MIN_NATIVE_TEXT_CHARS:-20}
+      - TABLE_EXTRACTION_ENGINE=${TABLE_EXTRACTION_ENGINE:-pdfplumber}
+      - SCANNED_TABLE_EXTRACTION_ENABLED=${SCANNED_TABLE_EXTRACTION_ENABLED:-true}
+      - MAX_FILE_SIZE_MB=${MAX_FILE_SIZE_MB:-50}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - extractor-tmp:/tmp/extractor
+    restart: unless-stopped
+    # networks: [anythingllm-net]   # uncomment if joining an existing AnythingLLM network
+
+  # --- Optional: run your modified AnythingLLM alongside the extractor ---
+  # anythingllm:
+  #   build:
+  #     context: ../test_anything_llm-main   # path to your modified AnythingLLM checkout
+  #     dockerfile: docker/Dockerfile
+  #   ports:
+  #     - "3001:3001"
+  #   volumes:
+  #     - anythingllm-storage:/app/server/storage
+  #   restart: unless-stopped
+  #   networks: [anythingllm-net]
+
+volumes:
+  extractor-tmp:
+  # anythingllm-storage:
+
+# networks:
+#   anythingllm-net:

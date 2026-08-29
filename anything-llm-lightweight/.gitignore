@@ -1,0 +1,7 @@
+﻿server/storage/
+**/node_modules/
+**/.env
+**/.env.*
+!docker/.env.example
+server/storage/*.db
+server/storage/vector-cache/
