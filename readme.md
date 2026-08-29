@@ -50,7 +50,6 @@ When bidder evidence is unavailable, the system records a visible evidence gap i
 
 </p>
 
-The diagram is also available as an [editable SVG](docs/architecture/microservice-architecture.svg).
 
 ### Runtime communication
 
